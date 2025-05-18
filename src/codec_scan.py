@@ -7,10 +7,10 @@ from rich import print
 from rich.table import Table
 
 # Configure accepted formats for direct play on NVIDIA Shield
-SUPPORTED_VIDEO = {"h264", "hevc"}
-SUPPORTED_AUDIO = {"aac", "ac3", "eac3"}
-SUPPORTED_SUBS = {"subrip", "ass"}
-SUPPORTED_CONTAINERS = {"matroska", "mov", "mp4"}
+SUPPORTED_VIDEO = {"h264", "hevc", "vp8", "vp9", "mpeg1", "mpeg2", "h263", "mjpeg", "mpeg4", "vc1"}
+SUPPORTED_AUDIO = {"aac", "ac3", "eac3", "dts", "flac", "mp3", "opus", "vorbis"}
+SUPPORTED_SUBS = {"subrip", "ass", "dvbsub", "dvdsub"}
+SUPPORTED_CONTAINERS = {"matroska", "mov", "mp4", "m2ts", "mpegts", "avi", "asf", "webm"}
 
 
 def probe_file(path):
