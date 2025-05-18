@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import argparse
 
 from rich import print
 from rich.table import Table
@@ -34,7 +35,7 @@ def probe_file(path):
         return None
 
 
-def analyze(path):
+def analyze(path, ignore_subs=False):
     data = probe_file(path)
     if not data:
         return False, "Probe error"
@@ -64,13 +65,13 @@ def analyze(path):
     if not audio_codecs & SUPPORTED_AUDIO:
         issues.append(f"Audio: {', '.join(audio_codecs)}")
 
-    if subtitle_codecs and not subtitle_codecs <= SUPPORTED_SUBS:
+    if not ignore_subs and subtitle_codecs and not subtitle_codecs <= SUPPORTED_SUBS:
         issues.append(f"Subtitles: {', '.join(subtitle_codecs)}")
 
     return (False if issues else True), ", ".join(issues)
 
 
-def scan_directory(root):
+def scan_directory(root, ignore_subs=False):
     table = Table(title="Media Compatibility Report (NVIDIA Shield + Jellyfin)")
     table.add_column("File", style="bold")
     table.add_column("Direct Play?", justify="center")
@@ -84,7 +85,7 @@ def scan_directory(root):
             if f.lower().endswith((".mkv", ".mp4", ".mov")):
                 total_files += 1
                 full_path = os.path.join(dirpath, f)
-                is_direct, reason = analyze(full_path)
+                is_direct, reason = analyze(full_path, ignore_subs)
                 if is_direct:
                     direct_play_files += 1
                 table.add_row(
@@ -100,15 +101,16 @@ def scan_directory(root):
         print(f"Total files scanned: {total_files}")
         print(f"Direct Play: [green]{direct_play_files} ({direct_play_percent:.1f}%)[/green]")
         print(f"Needs Transcode: [red]{total_files - direct_play_files} ({transcode_percent:.1f}%)[/red]")
+        if ignore_subs:
+            print("[yellow]Note: Subtitle compatibility issues were ignored[/yellow]")
     else:
         print("\n[yellow]No media files found in the specified directory.[/yellow]")
 
 
 def main():
-    import sys
-
-    if len(sys.argv) != 2:
-        print("[yellow]Usage: python codec_scan.py /path/to/media[/yellow]")
-        exit(1)
-
-    scan_directory(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Scan media files for NVIDIA Shield compatibility")
+    parser.add_argument("directory", help="Directory containing media files to scan")
+    parser.add_argument("--ignore-subs", action="store_true", help="Ignore subtitle compatibility issues")
+    
+    args = parser.parse_args()
+    scan_directory(args.directory, args.ignore_subs)
