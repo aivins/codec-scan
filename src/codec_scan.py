@@ -76,16 +76,32 @@ def scan_directory(root):
     table.add_column("Direct Play?", justify="center")
     table.add_column("Issues", style="red")
 
+    total_files = 0
+    direct_play_files = 0
+
     for dirpath, _, filenames in os.walk(root):
         for f in filenames:
             if f.lower().endswith((".mkv", ".mp4", ".mov")):
+                total_files += 1
                 full_path = os.path.join(dirpath, f)
                 is_direct, reason = analyze(full_path)
+                if is_direct:
+                    direct_play_files += 1
                 table.add_row(
                     f, "[green]Yes[/green]" if is_direct else "[red]No[/red]", reason
                 )
 
     print(table)
+    
+    if total_files > 0:
+        direct_play_percent = (direct_play_files / total_files) * 100
+        transcode_percent = 100 - direct_play_percent
+        print("\n[bold]Summary:[/bold]")
+        print(f"Total files scanned: {total_files}")
+        print(f"Direct Play: [green]{direct_play_files} ({direct_play_percent:.1f}%)[/green]")
+        print(f"Needs Transcode: [red]{total_files - direct_play_files} ({transcode_percent:.1f}%)[/red]")
+    else:
+        print("\n[yellow]No media files found in the specified directory.[/yellow]")
 
 
 def main():
